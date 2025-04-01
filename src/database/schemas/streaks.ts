@@ -27,10 +27,6 @@ const schema = new Schema<IStreak>({
         type: Number,
         required: true
     }
-}, {
-    methods: {
-        
-    }
 });
 
 const model = createModel<IStreak>('streaks', schema);
