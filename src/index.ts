@@ -26,10 +26,10 @@ const elysia = new Elysia()
             info: {
                 version: config.version,
                 title: 'LabyMod Streak API',
-                description: 'This is the official GlobalTags API documentation containing detailed descriptions about the API endpoints and their usage.',
+                description: 'This API is a cache proxy for LabyMod Streaks. It allows you to fetch streaks from the LabyMod API without hitting their rate limits.',
                 license: {
                     name: 'MIT',
-                    // url: 'https://github.com/Global-Tags/API/blob/master/LICENSE'
+                    url: 'https://github.com/RappyTV/StreakAPI/blob/master/LICENSE'
                 },
                 contact: {
                     name: 'RappyTV',
@@ -37,15 +37,10 @@ const elysia = new Elysia()
                     email: 'contact@rappytv.com'
                 }
             },
-            // tags: [
-            //     { name: 'API', description: 'Get info about the API' },
-            //     { name: 'Interactions', description: 'Interact with other players' },
-            //     { name: 'Settings', description: 'Modify the settings of your GlobalTag' },
-            //     { name: 'Roles', description: 'Holds role management routes' },
-            //     { name: 'Gift codes', description: 'Holds gift code actions' },
-            //     { name: 'Admin', description: 'Admininstrative actions' },
-            //     { name: 'Connections', description: 'Manage account connections' }
-            // ]
+            tags: [
+                { name: 'API', description: 'About the API' },
+                { name: 'Streaks', description: 'Get player streaks' }
+            ]
         }
     }))
     .onStart(async () => {

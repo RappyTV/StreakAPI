@@ -22,24 +22,27 @@ export function fetchStreak(uuid: string): Promise<number | undefined> {
             if(error instanceof AxiosError) {
                 if(error.response) {
                     if(error.response.status === 429) {
-                        reject(new LabyNetError('Rate limited. Please try again later!'));
+                        reject(new LabyNetError('Rate limited. Please try again later!', error.response.status));
                     }
-                    reject(new LabyNetError(error.response.data?.error || 'An unknown laby.net error ocurred!'));
+                    reject(new LabyNetError(error.response.data?.error || 'An unknown laby.net error ocurred!', error.response.status));
                 } else if(error.request) {
-                    reject(new LabyNetError('No response received from LabyNet API!'));
+                    reject(new LabyNetError('No response received from LabyNet API!', 502));
                 } else {
-                    reject(new LabyNetError(`Failed to fetch streak: ${error.message}`));
+                    reject(new LabyNetError(`Failed to fetch streak: ${error.message}`, 502));
                 }
             } else {
-                reject(new LabyNetError(error?.message || 'An unknown request error ocurred!'));
+                reject(new LabyNetError(error?.message || 'An unknown request error ocurred!', 500));
             }
         }
     });
 };
 
 export class LabyNetError extends Error {
-    constructor(message: string) {
+    public status: number;
+
+    constructor(message: string, status: number) {
         super(message);
         this.name = "LabyNetError";
+        this.status = status;
     }
 }
