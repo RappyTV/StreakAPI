@@ -1,5 +1,5 @@
 import PQueue from "p-queue";
-import streaks, { calculateStreakCacheExpiration } from "../database/schemas/streaks";
+import streaks, { calculateStreakCacheExpiration, getStreakLabel } from "../database/schemas/streaks";
 import { fetchStreak } from "./labynet";
 import Logger from "./Logger";
 import { isConnected } from "../database/mongo";
@@ -18,7 +18,7 @@ function renewCache(uuid: string): Promise<void> {
             streak.cache_age = Date.now();
             streak.cache_expires = calculateStreakCacheExpiration(newStreak);
             await streak.save();
-            Logger.debug(`Renewal completed for ${uuid}: ${newStreak ?? 'Hidden'}`);
+            Logger.debug(`Renewal completed for ${uuid}: ${getStreakLabel(streak.streak)}`);
             resolve();
         } catch(error) {
             Logger.error(`Renewal failed for ${streak.uuid}: ${error}`);

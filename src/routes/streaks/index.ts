@@ -7,29 +7,28 @@ import { isConnected } from "../../database/mongo";
 export default (app: ElysiaApp) => app.get('/:uuid', async ({ params, error }) => {
     const strippedUuid = params.uuid.replaceAll('-', '');
     const streak = await streaks.findOne({ uuid: strippedUuid });
-    if(!streak) {
-        try {
-            const streak = await fetchStreak(params.uuid);
-            const cacheAge = await saveStreak(strippedUuid, streak);
 
-            return {
-                cache_age: cacheAge,
-                streak: streak || -1
-            };
-        } catch(err) {
-            if(!(err instanceof LabyNetError)) throw err;
-            return error(err.status as 500, { error: err.message });
-        }
-    }
-
-    return {
+    if(streak) return {
         cache_age: streak.cache_age,
-        streak: streak.streak || -1
+        streak: streak.streak ?? null
     };
+
+    try {
+        const streak = await fetchStreak(params.uuid);
+        const cacheAge = await saveStreak(strippedUuid, streak);
+
+        return {
+            cache_age: cacheAge,
+            streak: streak ?? null
+        };
+    } catch(err) {
+        if(!(err instanceof LabyNetError)) throw err;
+        return error(err.status as 500, { error: err.message });
+    }
 }, {
     detail: { tags: ['Streaks'], description: 'Fetches the LabyMod Streak of a player' },
     response: {
-        200: t.Object({ cache_age: t.Number({ default: Date.now() }), streak: t.Number({ default: 420 }) }, { description: 'The players LabyMod Streak' }),
+        200: t.Object({ cache_age: t.Number({ default: Date.now() }), streak: t.Union([t.Number({ default: 420 }), t.Null()]) }, { description: 'The players LabyMod Streak' }),
         429: t.Object({ error: t.String() }, { description: 'We\'re ratelimited by laby.net' }),
         500: t.Object({ error: t.String() }, { description: 'An error ocurred with our request to laby.net' }),
         502: t.Object({ error: t.String() }, { description: 'We didn\'t receive a response from laby.net' }),

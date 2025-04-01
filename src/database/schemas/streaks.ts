@@ -41,7 +41,7 @@ export function saveStreak(uuid: string, streak: number | undefined): Promise<nu
                 cache_age: cacheAge,
                 cache_expires: calculateStreakCacheExpiration(streak)
             });
-            Logger.debug(`Saved new streak for ${uuid}: ${streak ?? 'Hidden'}`);
+            Logger.debug(`Saved new streak for ${uuid}: ${getStreakLabel(streak)}`);
             resolve(cacheAge);
         } catch(error) {
             reject(new Error(`Failed to save streak for ${uuid}: ${error}`));
@@ -50,12 +50,22 @@ export function saveStreak(uuid: string, streak: number | undefined): Promise<nu
 }
 
 export function calculateStreakCacheExpiration(streak: number | undefined, cacheAge: number = Date.now()): number {
-    if(streak === undefined) {
+    if(streak === undefined || streak === -1) {
         return cacheAge + month;
     } else if(streak === 0) {
         return cacheAge + week;
     } else {
         return cacheAge + day;
+    }
+}
+
+export function getStreakLabel(streak: number | undefined): string {
+    if(streak === undefined || streak === -1) {
+        return 'No streak';
+    } else if(streak === -1) {
+        return 'Hidden';
+    } else {
+        return `${streak} Days`;
     }
 }
 

@@ -15,9 +15,12 @@ export function fetchStreak(uuid: string): Promise<number | undefined> {
                     'User-Agent': `StreakAPI v${config.version} (https://github.com/RappyTV/StreakAPI) - ${config.contact}`
                 }
             });
+            if(response.status === 204) {
+                resolve(undefined);
+            }
             const data = response.data as StreakResponse;
 
-            resolve(data.playtime?.streak);
+            resolve(data.playtime?.streak ?? -1);
         } catch(error: any) {
             if(error instanceof AxiosError) {
                 if(error.response) {
