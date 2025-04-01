@@ -2,14 +2,16 @@ import PQueue from "p-queue";
 import streaks, { calculateStreakCacheExpiration } from "../database/schemas/streaks";
 import { fetchStreak } from "./labynet";
 import Logger from "./Logger";
+import { isConnected } from "../database/mongo";
 
 const queue = new PQueue({ interval: 10000, intervalCap: 2, concurrency: 1 });
 
 function renewCache(uuid: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
+        if(!isConnected()) return resolve();
         Logger.debug('Renewal started for', uuid);
         const streak = await streaks.findOne({ uuid });
-        if(!streak) return reject(new Error(`Streak not found for ${uuid}`));
+        if(!streak) return resolve();
         try {
             const newStreak = await fetchStreak(uuid);
             streak.streak = newStreak;
@@ -26,6 +28,7 @@ function renewCache(uuid: string): Promise<void> {
 }
 
 export async function processExpiredCaches() {
+    if(!isConnected()) return;
     const expiredCaches = await streaks.find({ cache_expires: { $lt: Date.now() } });
 
     for(const streak of expiredCaches) {
