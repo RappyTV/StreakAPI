@@ -1,5 +1,9 @@
 {
     "port": 5600,
     "srv": "",
-    "contact": "Email: <email> / Discord: @username"
+    "contact": "Email: <email> / Discord: @username",
+    "metrics": {
+        "enabled": true,
+        "cron": "0 0,12 * * *"
+    }
 }

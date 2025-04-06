@@ -8,7 +8,7 @@ import swagger from "@elysiajs/swagger";
 import { connect as connectDatabase } from "./database/mongo";
 import { handleErrors } from "./libs/error-handler";
 import { randomUUID } from "crypto";
-import { startCacheExpirationChecker } from "./libs/cron-jobs";
+import { startCacheExpirationChecker, startMetrics } from "./libs/cron-jobs";
 
 handleErrors();
 
@@ -48,6 +48,7 @@ const elysia = new Elysia()
         await connectDatabase(config.srv);
 
         startCacheExpirationChecker();
+        startMetrics();
     })
     .onError(({ code, set, error, request }) => {
         if(code == 'VALIDATION') {
