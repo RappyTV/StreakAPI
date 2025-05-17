@@ -4,9 +4,12 @@ import { fetchStreak } from "./labynet";
 import Logger from "./Logger";
 import { isConnected } from "../database/mongo";
 
-const queue = new PQueue({ interval: 10000, intervalCap: 2, concurrency: 1 });
+const queue = new PQueue({ interval: 10000, intervalCap: 5 });
+const inProgress = new Set<string>();
 
 function renewCache(uuid: string): Promise<void> {
+    if(inProgress.has(uuid)) return Promise.resolve();
+    inProgress.add(uuid);
     return new Promise<void>(async (resolve, reject) => {
         if(!isConnected()) return resolve();
         Logger.debug('Renewal started for', uuid);
@@ -23,6 +26,8 @@ function renewCache(uuid: string): Promise<void> {
         } catch(error) {
             Logger.error(`Renewal failed for ${streak.uuid}: ${error}`);
             resolve();
+        } finally {
+            inProgress.delete(uuid);
         }
     });
 }
