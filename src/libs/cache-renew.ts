@@ -8,8 +8,6 @@ const queue = new PQueue({ interval: 10000, intervalCap: 5 });
 const inProgress = new Set<string>();
 
 function renewCache(uuid: string): Promise<void> {
-    if(inProgress.has(uuid)) return Promise.resolve();
-    inProgress.add(uuid);
     return new Promise<void>(async (resolve, reject) => {
         if(!isConnected()) return resolve();
         Logger.debug('Renewal started for', uuid);
@@ -37,7 +35,10 @@ export async function processExpiredCaches() {
     const expiredCaches = await streaks.find({ cache_expires: { $lt: Date.now() } });
 
     for(const streak of expiredCaches) {
-        Logger.debug('Renewal queued for', streak.uuid);
-        queue.add(() => renewCache(streak.uuid), { id: streak.uuid, priority: Date.now() - streak.cache_expires });
+        const uuid = streak.uuid;
+        if(inProgress.has(uuid)) continue;
+        inProgress.add(uuid);
+        Logger.debug('Renewal queued for', uuid);
+        queue.add(() => renewCache(uuid), { id: uuid, priority: Date.now() - streak.cache_expires });
     }
 }
