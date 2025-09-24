@@ -3,6 +3,7 @@ import type { ElysiaApp } from "..";
 import config from "../libs/config";
 import Metrics from "../database/schemas/metrics";
 import { isConnected } from "../database/mongo";
+import { getQueueStats } from "../libs/cache-renew";
 
 export default (app: ElysiaApp) => app.get('/', () => ({
     version: config.version
@@ -36,5 +37,26 @@ export default (app: ElysiaApp) => app.get('/', () => ({
             set.status = 503;
             return { error: 'Our database is not reachable at the moment!' };
         }
+    }
+}).get('/queue-stats', () => {
+    const stats = getQueueStats();
+    return {
+        queue_size: stats.size,
+        pending_requests: stats.pending,
+        in_progress: stats.inProgress,
+        is_paused: stats.isPaused
+    };
+}, {
+    detail: {
+        tags: ['API'],
+        description: 'Get the cache renewal queue statistics'
+    },
+    response: {
+        200: t.Object({
+            queue_size: t.Number({ default: 0 }),
+            pending_requests: t.Number({ default: 0 }),
+            in_progress: t.Number({ default: 0 }),
+            is_paused: t.Boolean({ default: false })
+        }, { description: 'Queue statistics' })
     }
 });
