@@ -1,5 +1,5 @@
 import { CronJob } from "cron";
-import { processExpiredCaches } from "./cache-renew";
+import { processExpiredCaches, getQueueStats } from "./cache-renew";
 import config from "./config";
 import Logger from "./Logger";
 import { saveMetrics } from "./metrics";
@@ -7,7 +7,12 @@ import { saveMetrics } from "./metrics";
 const tz = 'Europe/Berlin';
 
 export function startCacheExpirationChecker() {
-    new CronJob('* * * * *', processExpiredCaches, null, true, tz, null, true);
+    new CronJob('*/2 * * * *', processExpiredCaches, null, true, tz, null, true);
+
+    new CronJob('*/10 * * * *', () => {
+        const stats = getQueueStats();
+        Logger.info(`Queue stats - Size: ${stats.size}, Pending: ${stats.pending}, In Progress: ${stats.inProgress}`);
+    }, null, true, tz);
 }
 
 export function startMetrics() {
