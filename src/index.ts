@@ -9,6 +9,7 @@ import { connect as connectDatabase } from "./database/mongo";
 import { handleErrors } from "./libs/error-handler";
 import { randomUUID } from "crypto";
 import { startCacheExpirationChecker, startMetrics } from "./libs/cron-jobs";
+import { shutdownQueue } from "./libs/cache-renew";
 
 handleErrors();
 
@@ -50,6 +51,10 @@ const elysia = new Elysia()
         startCacheExpirationChecker();
         startMetrics();
     })
+    .onStop(() => {
+        Logger.info('Shutting down server...');
+        shutdownQueue();
+    })
     .onError(({ code, set, error, request }) => {
         if(code == 'VALIDATION') {
             set.status = 422;
@@ -61,10 +66,23 @@ const elysia = new Elysia()
         } else {
             set.status = 500;
             const requestId = randomUUID();
-            Logger.error(`An error ocurred with request ${requestId}: ${error}`);
-            return { error: 'An unknown error ocurred!', id: requestId };
+            Logger.error(`An error occurred with request ${requestId}: ${error}`);
+            return { error: 'An unknown error occurred!', id: requestId };
         }
     })
     .listen(config.port);
+
+// Graceful shutdown handling
+process.on('SIGINT', () => {
+    Logger.info('Received SIGINT, shutting down gracefully...');
+    shutdownQueue();
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    Logger.info('Received SIGTERM, shutting down gracefully...');
+    shutdownQueue();
+    process.exit(0);
+});
 
 export type ElysiaApp = typeof elysia;
