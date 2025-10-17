@@ -4,7 +4,7 @@ import streaks, { saveStreak } from "../../database/schemas/streaks";
 import { fetchStreak, LabyNetError } from "../../libs/labynet";
 import { isConnected } from "../../database/mongo";
 
-export default (app: ElysiaApp) => app.get('/:uuid', async ({ params, error }) => {
+export default (app: ElysiaApp) => app.get('/:uuid', async ({ params, status }) => {
     const strippedUuid = params.uuid.replaceAll('-', '');
     const streak = await streaks.findOne({ uuid: strippedUuid });
 
@@ -23,7 +23,7 @@ export default (app: ElysiaApp) => app.get('/:uuid', async ({ params, error }) =
         };
     } catch(err) {
         if(!(err instanceof LabyNetError)) throw err;
-        return error(err.status as 500, { error: err.message });
+        return status(err.status as 500, { error: err.message });
     }
 }, {
     detail: { tags: ['Streaks'], description: 'Fetches the LabyMod Streak of a player' },
